@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Scholar;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,4 +24,7 @@ Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
 
-require __DIR__.'/auth.php';
+Route::view('test', 'exports.scholars', [
+    'scholars' => Scholar::all()
+]);
+require __DIR__ . '/auth.php';
