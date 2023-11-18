@@ -24,7 +24,4 @@ Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
 
-Route::view('test', 'exports.scholars', [
-    'scholars' => Scholar::all()
-]);
 require __DIR__ . '/auth.php';
