@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\DTO\ScholarUpdateData;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\LaravelData\DataCollection;
 
 /**
  * @mixin IdeHelperScholar
@@ -13,6 +15,8 @@ class Scholar extends Model
     use HasFactory;
 
     protected $casts = [
+        'reentry_plan' => 'array',
+        'updates' => DataCollection::class . ':' . ScholarUpdateData::class,
         'contract_start_date' => 'immutable_date',
         'contract_end_date' => 'immutable_date',
         'date_of_graduation' => 'immutable_date',

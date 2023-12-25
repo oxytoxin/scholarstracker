@@ -6,14 +6,23 @@ use App\Exports\ScholarExport;
 use App\Filament\Resources\ScholarResource\Pages;
 use App\Filament\Resources\ScholarResource\RelationManagers;
 use App\Models\Scholar;
+use Awcodes\FilamentTableRepeater\Components\TableRepeater;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -43,6 +52,9 @@ class ScholarResource extends Resource
                     ->disk('profile_photos'),
                 Section::make('Scholarship Details')
                     ->schema([
+                        Forms\Components\Select::make('campus_id')
+                            ->required()
+                            ->relationship('campus', 'name'),
                         Forms\Components\Select::make('scholarship_status_id')
                             ->required()
                             ->relationship('scholarship_status', 'name')
@@ -132,7 +144,26 @@ class ScholarResource extends Resource
                             ->columnSpanFull()
                             ->maxLength(125),
                     ])
-                    ->columns(2)
+                    ->columns(2),
+                TableRepeater::make('reentry_plan')
+                    ->schema([
+                        DatePicker::make('date')
+                            ->date(),
+                        Textarea::make('plan')
+                            ->required(),
+                    ])
+                    ->hideLabels()
+                    ->columnSpanFull(),
+                TableRepeater::make('updates')
+                    ->schema([
+                        DatePicker::make('date')
+                            ->default(today())
+                            ->date(),
+                        Textarea::make('details')
+                            ->required(),
+                    ])
+                    ->hideLabels()
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -141,51 +172,66 @@ class ScholarResource extends Resource
         return $table
             ->columns([
                 ImageColumn::make('profile_photo')->disk('profile_photos')->alignCenter()->label('')->height(100)->circular(),
-                Tables\Columns\TextColumn::make('alt_full_name')
+                TextColumn::make('alt_full_name')
                     ->label('Name')
+                    ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('scholarship_status.name')
+                TextColumn::make('campus.name')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('scholarship_type.name')
+                TextColumn::make('scholarship_status.name')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('scholarship_category.name')
+                TextColumn::make('scholarship_type.name')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('degree_program.name')
+                TextColumn::make('scholarship_category.name')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('higher_education_institute.name')
+                TextColumn::make('degree_program.name')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('contract_start_date')
+                TextColumn::make('higher_education_institute.name')
+                    ->sortable(),
+                TextColumn::make('contract_start_date')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('contract_end_date')
+                TextColumn::make('contract_end_date')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('extension_period')
+                TextColumn::make('extension_period')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('date_of_graduation')
+                TextColumn::make('date_of_graduation')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('end_of_service_obligation_date')
+                TextColumn::make('end_of_service_obligation_date')
                     ->date()
                     ->sortable(),
-                Tables\Columns\IconColumn::make('connected_to_hei')
+                IconColumn::make('connected_to_hei')
                     ->boolean(),
-                Tables\Columns\IconColumn::make('extension_requested')
+                IconColumn::make('extension_requested')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('extension_status')
-                    ->searchable(),
+                TextColumn::make('extension_status'),
             ])
             ->filters([
-                //
+                SelectFilter::make('scholarship_status')
+                    ->relationship('scholarship_status', 'name'),
+                SelectFilter::make('scholarship_type')
+                    ->relationship('scholarship_type', 'name'),
+                SelectFilter::make('scholarship_category')
+                    ->relationship('scholarship_category', 'name'),
+                SelectFilter::make('degree_program')
+                    ->relationship('degree_program', 'name'),
+                SelectFilter::make('campus')
+                    ->relationship('campus', 'name'),
+                SelectFilter::make('higher_education_institute')
+                    ->searchable()
+                    ->preload()
+                    ->relationship('higher_education_institute', 'name'),
             ])
+            ->filtersLayout(FiltersLayout::AboveContent)
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->headerActions([
                 Action::make('export')
-                    ->action(function ($table) {
-                        // return Excel::download((new ScholarExport($table->getRecords())), 'scholars.xlsx');
+                    ->action(function (Table $table) {
                         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('templates/' . 'scholars.xlsx'));
                         $worksheet = $spreadsheet->getActiveSheet();
                         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
@@ -201,7 +247,8 @@ class ScholarResource extends Resource
                             $drawing->setOffsetX(20);
                             $worksheet->getRowDimension($activeRow)->setRowHeight(100, 'px');
                             $worksheet->fromArray([
-                                'Name' => $scholar->full_name,
+                                'Name' => $scholar->alt_full_name,
+                                'Campus' => $scholar->campus?->name,
                                 'Type of Scholarship' => $scholar->scholarship_type->name,
                                 'Category' => $scholar->scholarship_category?->name,
                                 'Degree Program' => $scholar->degree_program->name,
@@ -237,49 +284,4 @@ class ScholarResource extends Resource
             'index' => Pages\ManageScholars::route('/'),
         ];
     }
-
-
-    // $options = new Options();
-    // $writer = new Writer($options);
-    // $writer->openToFile(storage_path('app/livewire-tmp/' . date_timestamp_get(now()) .  '-scholars.xlsx'));
-    // // $writer = SimpleExcelWriter::create(storage_path('app/livewire-tmp/' . date_timestamp_get(now()) .  '-scholars.xlsx'));
-    // $table->getRecords()->each(function (Scholar $scholar) use ($writer) {
-    //     $writer->addRow(Row::fromValues([
-    //         'Name' => $scholar->full_name,
-    //         'Type of Scholarship' => $scholar->scholarship_type->name,
-    //         'Category' => $scholar->scholarship_category?->name,
-    //         'Degree Program' => $scholar->degree_program->name,
-    //         'Delivering HEI' => $scholar->higher_education_institute->name,
-    //         'Contract Period' => $scholar->contract_start_date->format('F Y') . ' - ' . $scholar->contract_end_date->format('F Y'),
-    //         'Extension Period' => $scholar->extension_period,
-    //         'Status' => $scholar->scholarship_status->name,
-    //         'Date of Graduation' => $scholar->date_of_graduation?->format('m/d/Y'),
-    //         'Number of Service Obligation' => ($scholar->contract_start_date?->startOfYear()->diffInYears($scholar->contract_end_date?->startOfYear()) ?? 1) * 2,
-    //         'End of Service Obligation' => $scholar->end_of_service_obligation_date?->format('m/d/Y'),
-    //         'Remarks' => $scholar->remarks,
-    //         'Is the scholar still connected with the Sending Higher Education Institution? (Yes / No)' => $scholar->connected_to_hei ? 'Yes' : 'No',
-    //         'The scholar is no longer connected due to: (Resignation, Termination, Health Reasons, Others)' => '',
-    //         'Does the scholar have a request for extension? (Yes / No)' => $scholar->extension_requested ? 'Yes' : 'No',
-    //         'If yes, what is the status of the request? (Pending, Approved, Disapproved)' => $scholar->extension_status
-    //     ]));
-    //     // $writer->addRow([
-    //     //     'Name' => $scholar->full_name,
-    //     //     'Type of Scholarship' => $scholar->scholarship_type->name,
-    //     //     'Category' => $scholar->scholarship_category?->name,
-    //     //     'Degree Program' => $scholar->degree_program->name,
-    //     //     'Delivering HEI' => $scholar->higher_education_institute->name,
-    //     //     'Contract Period' => $scholar->contract_start_date->format('F Y') . ' - ' . $scholar->contract_end_date->format('F Y'),
-    //     //     'Extension Period' => $scholar->extension_period,
-    //     //     'Status' => $scholar->scholarship_status->name,
-    //     //     'Date of Graduation' => $scholar->date_of_graduation?->format('m/d/Y'),
-    //     //     'Number of Service Obligation' => ($scholar->contract_start_date?->startOfYear()->diffInYears($scholar->contract_end_date?->startOfYear()) ?? 1) * 2,
-    //     //     'End of Service Obligation' => $scholar->end_of_service_obligation_date?->format('m/d/Y'),
-    //     //     'Remarks' => $scholar->remarks,
-    //     //     'Is the scholar still connected with the Sending Higher Education Institution? (Yes / No)' => $scholar->connected_to_hei ? 'Yes' : 'No',
-    //     //     'The scholar is no longer connected due to: (Resignation, Termination, Health Reasons, Others)' => '',
-    //     //     'Does the scholar have a request for extension? (Yes / No)' => $scholar->extension_requested ? 'Yes' : 'No',
-    //     //     'If yes, what is the status of the request? (Pending, Approved, Disapproved)' => $scholar->extension_status
-    //     // ]);
-    // });
-    // return response()->download($writer->getPath());
 }

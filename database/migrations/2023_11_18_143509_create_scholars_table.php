@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Campus;
 use App\Models\DegreeProgram;
 use App\Models\HeiDisconnectionReason;
 use App\Models\ScholarshipType;
@@ -25,6 +26,7 @@ return new class extends Migration
             $table->string('middle_initial')->nullable();
             $table->string('full_name')->virtualAs("CONCAT(first_name, ' ', IFNULL(CONCAT(middle_initial, '.'), ''), ' ', last_name)");
             $table->string('alt_full_name')->virtualAs("CONCAT(last_name, ', ', first_name, ' ', IFNULL(CONCAT(middle_initial, '.'), ''))");
+            $table->foreignIdFor(Campus::class)->constrained();
             $table->foreignIdFor(ScholarshipType::class)->constrained();
             $table->foreignIdFor(ScholarshipCategory::class)->nullable()->constrained();
             $table->foreignIdFor(DegreeProgram::class)->constrained();
@@ -41,6 +43,8 @@ return new class extends Migration
             $table->boolean('connected_to_hei')->default(true);
             $table->boolean('extension_requested')->default(false);
             $table->string('extension_status')->nullable();
+            $table->json('reentry_plan')->default(DB::raw('(JSON_ARRAY())'));
+            $table->json('updates')->default(DB::raw('(JSON_ARRAY())'));
             $table->timestamps();
         });
     }
