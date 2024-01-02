@@ -238,13 +238,15 @@ class ScholarResource extends Resource
                         $path = storage_path('app/livewire-tmp/' . date_timestamp_get(now()) .  '-scholars.xlsx');
                         $activeRow = 4;
                         $table->getRecords()->each(function (Scholar $scholar) use ($writer, $worksheet, &$activeRow) {
-                            $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
-                            $drawing->setPath(storage_path('app/public/profile_photos/' . $scholar->profile_photo));
-                            $drawing->setHeight(100);
-                            $drawing->setWidth(100);
-                            $drawing->setCoordinates('A' . $activeRow);
-                            $drawing->setWorksheet($worksheet);
-                            $drawing->setOffsetX(20);
+                            if ($scholar->profile_photo) {
+                                $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+                                $drawing->setPath(storage_path('app/public/profile_photos/' . $scholar->profile_photo));
+                                $drawing->setHeight(100);
+                                $drawing->setWidth(100);
+                                $drawing->setCoordinates('A' . $activeRow);
+                                $drawing->setWorksheet($worksheet);
+                                $drawing->setOffsetX(20);
+                            }
                             $worksheet->getRowDimension($activeRow)->setRowHeight(100, 'px');
                             $worksheet->fromArray([
                                 'Name' => $scholar->alt_full_name,
