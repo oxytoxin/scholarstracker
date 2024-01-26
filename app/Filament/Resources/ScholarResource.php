@@ -232,41 +232,47 @@ class ScholarResource extends Resource
             ->headerActions([
                 Action::make('export')
                     ->action(function (Table $table) {
-                        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('templates/' . 'scholars.xlsx'));
+                        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('templates/' . 'revised scholars profile.xlsx'));
                         $worksheet = $spreadsheet->getActiveSheet();
                         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
                         $path = storage_path('app/livewire-tmp/' . date_timestamp_get(now()) .  '-scholars.xlsx');
-                        $activeRow = 4;
-                        $table->getRecords()->each(function (Scholar $scholar) use ($writer, $worksheet, &$activeRow) {
+                        $startRow = 12;
+                        $activeRow = $startRow;
+                        $table->getRecords()->each(function (Scholar $scholar) use ($startRow, $worksheet, &$activeRow) {
+                            $rowStyle = $worksheet->getStyle('A' . $startRow . ':S' . $startRow);
                             if ($scholar->profile_photo) {
                                 $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
                                 $drawing->setPath(storage_path('app/public/profile_photos/' . $scholar->profile_photo));
                                 $drawing->setHeight(100);
                                 $drawing->setWidth(100);
-                                $drawing->setCoordinates('A' . $activeRow);
+                                $drawing->setCoordinates('B' . $activeRow);
                                 $drawing->setWorksheet($worksheet);
                                 $drawing->setOffsetX(20);
+                                $drawing->setOffsetY(20);
                             }
-                            $worksheet->getRowDimension($activeRow)->setRowHeight(100, 'px');
                             $worksheet->fromArray([
+                                'Personnel No.' => $activeRow - $startRow + 1,
+                                'Photo' => '',
                                 'Name' => $scholar->alt_full_name,
                                 'Campus' => $scholar->campus?->name,
-                                'Type of Scholarship' => $scholar->scholarship_type->name,
+                                'Type of Scholarship' => $scholar->scholarship_type?->name,
                                 'Category' => $scholar->scholarship_category?->name,
-                                'Degree Program' => $scholar->degree_program->name,
-                                'Delivering HEI' => $scholar->higher_education_institute->name,
-                                'Contract Period' => $scholar->contract_start_date->format('F Y') . ' - ' . $scholar->contract_end_date->format('F Y'),
+                                'Degree Program' => $scholar->degree_program?->name,
+                                'Delivering HEI' => $scholar->higher_education_institute?->name,
+                                'Contract Period' => $scholar->contract_start_date?->format('F Y') . ' - ' . $scholar->contract_end_date?->format('F Y'),
                                 'Extension Period' => $scholar->extension_period,
-                                'Status' => $scholar->scholarship_status->name,
+                                'Status' => $scholar->scholarship_status?->name,
                                 'Date of Graduation' => $scholar->date_of_graduation?->format('m/d/Y'),
                                 'Number of Service Obligation' => $scholar->contract_start_date?->startOfYear()->diffInYears($scholar->contract_end_date?->startOfYear()) == 0 ? 2 :  $scholar->contract_start_date?->startOfYear()->diffInYears($scholar->contract_end_date?->startOfYear()) * 2,
                                 'End of Service Obligation' => $scholar->end_of_service_obligation_date?->format('m/d/Y'),
                                 'Remarks' => $scholar->remarks,
                                 'Is the scholar still connected with the Sending Higher Education Institution? (Yes / No)' => $scholar->connected_to_hei ? 'Yes' : 'No',
-                                'The scholar is no longer connected due to: (Resignation, Termination, Health Reasons, Others)' => '',
+                                'The scholar is no longer connected due to: (Resignation, Termination, Health Reasons, Others)' => $scholar->hei_disconnection_reason?->name,
                                 'Does the scholar have a request for extension? (Yes / No)' => $scholar->extension_requested ? 'Yes' : 'No',
                                 'If yes, what is the status of the request? (Pending, Approved, Disapproved)' => $scholar->extension_status
-                            ], null, 'B' . $activeRow, true);
+                            ], null, 'A' . $activeRow, true);
+                            $worksheet->duplicateStyle($rowStyle, 'A' . $activeRow . ':S' . $activeRow);
+                            $worksheet->getRowDimension($activeRow)->setRowHeight(140, 'px');
                             $activeRow++;
                         });
                         $writer->save($path);
