@@ -235,19 +235,19 @@ class ScholarResource extends Resource
             ])
             ->headerActions([
                 Action::make('scholars_profile')
-                    ->action(function (Table $table, $livewire) {
+                    ->action(function ($livewire) {
                         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('templates/' . 'revised scholars profile.xlsx'));
                         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
                         $worksheetTemplate = clone $spreadsheet->getActiveSheet();
                         $spreadsheet->removeSheetByIndex(0);
                         $path = storage_path('app/livewire-tmp/' . date_timestamp_get(now()) . '-scholars-profile.xlsx');
-                        if (filled($livewire->tableFilters['scholarship_type']['value'] ?? null)) {
+                        if ($livewire->tableFilters['scholarship_type']['value']) {
                             $scholarship_type = ScholarshipType::find($livewire->tableFilters['scholarship_type']['value']);
-                            GenerateWorksheetForScholarsProfileReport::handle($table->getRecords()->collect(), $scholarship_type?->name, $worksheetTemplate, $spreadsheet);
+                            GenerateWorksheetForScholarsProfileReport::handle(Scholar::cursor(), $scholarship_type?->name, $worksheetTemplate, $spreadsheet);
                         } else {
-                            $grouped_records = $table->getRecords()->collect()->groupBy('scholarship_type.name');
-                            foreach ($grouped_records as $scholarship_type => $scholars) {
-                                GenerateWorksheetForScholarsProfileReport::handle($scholars, $scholarship_type, $worksheetTemplate, $spreadsheet);
+                            $scholarship_types = ScholarshipType::get();
+                            foreach ($scholarship_types as $scholarship_type) {
+                                GenerateWorksheetForScholarsProfileReport::handle($scholarship_type->scholars()->with('campus', 'scholarship_type', 'scholarship_category', 'degree_program', 'higher_education_institute', 'scholarship_status')->cursor(), $scholarship_type->name, $worksheetTemplate, $spreadsheet);
                             }
                         }
                         $writer->save($path);

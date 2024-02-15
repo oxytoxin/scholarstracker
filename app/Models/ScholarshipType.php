@@ -11,4 +11,9 @@ use Illuminate\Database\Eloquent\Model;
 class ScholarshipType extends Model
 {
     use HasFactory;
+
+    public function scholars()
+    {
+        return $this->hasMany(Scholar::class);
+    }
 }
