@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\DegreeProgram;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class DegreeProgramSeeder extends Seeder
 {
@@ -14,19 +13,19 @@ class DegreeProgramSeeder extends Seeder
     public function run(): void
     {
         DegreeProgram::create([
-            'name' => 'Doctor of Philosophy in Biology'
+            'name' => 'Doctor of Philosophy in Biology',
         ]);
         DegreeProgram::create([
-            'name' => 'Doctor of Technology Education'
+            'name' => 'Doctor of Technology Education',
         ]);
         DegreeProgram::create([
-            'name' => 'PhD in Education major in Physical Education'
+            'name' => 'PhD in Education major in Physical Education',
         ]);
         DegreeProgram::create([
-            'name' => 'Doctor of Education Major in Educational Management'
+            'name' => 'Doctor of Education Major in Educational Management',
         ]);
         DegreeProgram::create([
-            'name' => 'PhD in Education Major in Curriculum Development'
+            'name' => 'PhD in Education Major in Curriculum Development',
         ]);
     }
 }

@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Campus;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class CampusSeeder extends Seeder
 {
@@ -14,25 +13,25 @@ class CampusSeeder extends Seeder
     public function run(): void
     {
         Campus::create([
-            'name' => 'ACCESS'
+            'name' => 'ACCESS',
         ]);
         Campus::create([
-            'name' => 'TACURONG'
+            'name' => 'TACURONG',
         ]);
         Campus::create([
-            'name' => 'ISULAN'
+            'name' => 'ISULAN',
         ]);
         Campus::create([
-            'name' => 'LUTAYAN'
+            'name' => 'LUTAYAN',
         ]);
         Campus::create([
-            'name' => 'BAGUMBAYAN'
+            'name' => 'BAGUMBAYAN',
         ]);
         Campus::create([
-            'name' => 'KALAMANSIG'
+            'name' => 'KALAMANSIG',
         ]);
         Campus::create([
-            'name' => 'PALIMBANG'
+            'name' => 'PALIMBANG',
         ]);
     }
 }

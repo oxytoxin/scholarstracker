@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\ScholarshipStatus;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ScholarshipStatusSeeder extends Seeder
@@ -18,6 +17,7 @@ class ScholarshipStatusSeeder extends Seeder
         ]);
         ScholarshipStatus::create([
             'name' => 'Completed',
+            'is_completed' => true
         ]);
         ScholarshipStatus::create([
             'name' => 'For BOR Approval',

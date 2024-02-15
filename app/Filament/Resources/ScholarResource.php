@@ -2,16 +2,19 @@
 
 namespace App\Filament\Resources;
 
-use App\Exports\ScholarExport;
+use App\Actions\GenerateScholarsSummaryReport;
+use App\Actions\GenerateWorksheetForScholarsProfileReport;
 use App\Filament\Resources\ScholarResource\Pages;
-use App\Filament\Resources\ScholarResource\RelationManagers;
 use App\Models\Scholar;
-use Awcodes\FilamentTableRepeater\Components\TableRepeater;
-use Filament\Forms;
+use App\Models\ScholarshipType;
+use Awcodes\TableRepeater\Components\TableRepeater;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -24,14 +27,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Maatwebsite\Excel\Facades\Excel;
-use OpenSpout\Common\Entity\Row;
-use OpenSpout\Writer\XLSX\Options;
-use OpenSpout\Writer\XLSX\Writer;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
-use Spatie\SimpleExcel\SimpleExcelWriter;
 
 class ScholarResource extends Resource
 {
@@ -52,20 +47,20 @@ class ScholarResource extends Resource
                     ->disk('profile_photos'),
                 Section::make('Scholarship Details')
                     ->schema([
-                        Forms\Components\Select::make('campus_id')
+                        Select::make('campus_id')
                             ->required()
                             ->relationship('campus', 'name'),
-                        Forms\Components\Select::make('scholarship_status_id')
+                        Select::make('scholarship_status_id')
                             ->required()
                             ->relationship('scholarship_status', 'name')
                             ->preload()
                             ->default(1)
                             ->searchable()
                             ->createOptionForm([
-                                Forms\Components\TextInput::make('name')
+                                TextInput::make('name')
                                     ->required(),
                             ]),
-                        Forms\Components\Select::make('scholarship_type_id')
+                        Select::make('scholarship_type_id')
                             ->required()
                             ->live()
                             ->relationship('scholarship_type', 'name')
@@ -73,74 +68,74 @@ class ScholarResource extends Resource
                             ->preload()
                             ->searchable()
                             ->createOptionForm([
-                                Forms\Components\TextInput::make('name')
+                                TextInput::make('name')
                                     ->required(),
                             ]),
-                        Forms\Components\Select::make('scholarship_category_id')
+                        Select::make('scholarship_category_id')
                             ->required()
                             ->visible(fn ($get) => $get('scholarship_type_id') == 1)
                             ->relationship('scholarship_category', 'name')
                             ->preload()
                             ->searchable()
                             ->createOptionForm([
-                                Forms\Components\TextInput::make('name')
+                                TextInput::make('name')
                                     ->required(),
                             ]),
-                        Forms\Components\Select::make('degree_program_id')
+                        Select::make('degree_program_id')
                             ->required()
                             ->relationship('degree_program', 'name')
                             ->preload()
                             ->searchable()
                             ->createOptionForm([
-                                Forms\Components\TextInput::make('name')
+                                TextInput::make('name')
                                     ->required(),
                             ]),
-                        Forms\Components\Select::make('higher_education_institute_id')
+                        Select::make('higher_education_institute_id')
                             ->required()
                             ->relationship('higher_education_institute', 'name')
                             ->preload()
                             ->searchable()
                             ->createOptionForm([
-                                Forms\Components\TextInput::make('name')
+                                TextInput::make('name')
                                     ->required(),
                             ]),
                     ])
                     ->columns(2),
                 Section::make('Name')
                     ->schema([
-                        Forms\Components\TextInput::make('first_name')
+                        TextInput::make('first_name')
                             ->required()
                             ->maxLength(125),
-                        Forms\Components\TextInput::make('last_name')
+                        TextInput::make('last_name')
                             ->required()
                             ->maxLength(125),
-                        Forms\Components\TextInput::make('middle_initial')
+                        TextInput::make('middle_initial')
                             ->maxLength(125),
                     ])
                     ->columns(3),
                 Section::make('Contract Details')
                     ->schema([
-                        Forms\Components\DatePicker::make('contract_start_date')
+                        DatePicker::make('contract_start_date')
                             ->native(false)
                             ->required(),
-                        Forms\Components\DatePicker::make('contract_end_date')
+                        DatePicker::make('contract_end_date')
                             ->native(false)
                             ->required(),
-                        Forms\Components\TextInput::make('extension_period')
+                        TextInput::make('extension_period')
                             ->maxLength(125),
-                        Forms\Components\DatePicker::make('date_of_graduation')
+                        DatePicker::make('date_of_graduation')
                             ->native(false),
-                        Forms\Components\DatePicker::make('end_of_service_obligation_date')
+                        DatePicker::make('end_of_service_obligation_date')
                             ->native(false),
-                        Forms\Components\Textarea::make('remarks')
+                        Textarea::make('remarks')
                             ->maxLength(65535)
                             ->columnSpanFull(),
-                        Forms\Components\Toggle::make('connected_to_hei')
+                        Toggle::make('connected_to_hei')
                             ->label('Connected to HEI')
-                            ->helperText("Is the scholar still connected with the Sending Higher Education Institution?"),
-                        Forms\Components\Toggle::make('extension_requested')
-                            ->helperText("Does the scholar have a request for extension?"),
-                        Forms\Components\TextInput::make('extension_status')
+                            ->helperText('Is the scholar still connected with the Sending Higher Education Institution?'),
+                        Toggle::make('extension_requested')
+                            ->helperText('Does the scholar have a request for extension?'),
+                        TextInput::make('extension_status')
                             ->columnSpanFull()
                             ->maxLength(125),
                     ])
@@ -230,51 +225,32 @@ class ScholarResource extends Resource
                 DeleteAction::make(),
             ])
             ->headerActions([
-                Action::make('export')
-                    ->action(function (Table $table) {
+                Action::make('scholars_profile')
+                    ->action(function (Table $table, $livewire) {
                         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('templates/' . 'revised scholars profile.xlsx'));
-                        $worksheet = $spreadsheet->getActiveSheet();
                         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-                        $path = storage_path('app/livewire-tmp/' . date_timestamp_get(now()) .  '-scholars.xlsx');
-                        $startRow = 12;
-                        $activeRow = $startRow;
-                        $table->getRecords()->each(function (Scholar $scholar) use ($startRow, $worksheet, &$activeRow) {
-                            $rowStyle = $worksheet->getStyle('A' . $startRow . ':S' . $startRow);
-                            if ($scholar->profile_photo) {
-                                $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
-                                $drawing->setPath(storage_path('app/public/profile_photos/' . $scholar->profile_photo));
-                                $drawing->setHeight(100);
-                                $drawing->setWidth(100);
-                                $drawing->setCoordinates('B' . $activeRow);
-                                $drawing->setWorksheet($worksheet);
-                                $drawing->setOffsetX(20);
-                                $drawing->setOffsetY(20);
+                        $worksheetTemplate = clone $spreadsheet->getActiveSheet();
+                        $spreadsheet->removeSheetByIndex(0);
+                        $path = storage_path('app/livewire-tmp/' . date_timestamp_get(now()) . '-scholars-profile.xlsx');
+                        if ($livewire->tableFilters['scholarship_type']['value']) {
+                            $scholarship_type = ScholarshipType::find($livewire->tableFilters['scholarship_type']['value']);
+                            GenerateWorksheetForScholarsProfileReport::handle($table->getRecords()->collect(), $scholarship_type?->name, $worksheetTemplate, $spreadsheet);
+                        } else {
+                            $grouped_records = $table->getRecords()->groupBy('scholarship_type.name');
+                            foreach ($grouped_records as $scholarship_type => $scholars) {
+                                GenerateWorksheetForScholarsProfileReport::handle($scholars, $scholarship_type, $worksheetTemplate, $spreadsheet);
                             }
-                            $worksheet->fromArray([
-                                'Personnel No.' => $activeRow - $startRow + 1,
-                                'Photo' => '',
-                                'Name' => $scholar->alt_full_name,
-                                'Campus' => $scholar->campus?->name,
-                                'Type of Scholarship' => $scholar->scholarship_type?->name,
-                                'Category' => $scholar->scholarship_category?->name,
-                                'Degree Program' => $scholar->degree_program?->name,
-                                'Delivering HEI' => $scholar->higher_education_institute?->name,
-                                'Contract Period' => $scholar->contract_start_date?->format('F Y') . ' - ' . $scholar->contract_end_date?->format('F Y'),
-                                'Extension Period' => $scholar->extension_period,
-                                'Status' => $scholar->scholarship_status?->name,
-                                'Date of Graduation' => $scholar->date_of_graduation?->format('m/d/Y'),
-                                'Number of Service Obligation' => $scholar->contract_start_date?->startOfYear()->diffInYears($scholar->contract_end_date?->startOfYear()) == 0 ? 2 :  $scholar->contract_start_date?->startOfYear()->diffInYears($scholar->contract_end_date?->startOfYear()) * 2,
-                                'End of Service Obligation' => $scholar->end_of_service_obligation_date?->format('m/d/Y'),
-                                'Remarks' => $scholar->remarks,
-                                'Is the scholar still connected with the Sending Higher Education Institution? (Yes / No)' => $scholar->connected_to_hei ? 'Yes' : 'No',
-                                'The scholar is no longer connected due to: (Resignation, Termination, Health Reasons, Others)' => $scholar->hei_disconnection_reason?->name,
-                                'Does the scholar have a request for extension? (Yes / No)' => $scholar->extension_requested ? 'Yes' : 'No',
-                                'If yes, what is the status of the request? (Pending, Approved, Disapproved)' => $scholar->extension_status
-                            ], null, 'A' . $activeRow, true);
-                            $worksheet->duplicateStyle($rowStyle, 'A' . $activeRow . ':S' . $activeRow);
-                            $worksheet->getRowDimension($activeRow)->setRowHeight(140, 'px');
-                            $activeRow++;
-                        });
+                        }
+                        $writer->save($path);
+
+                        return response()->download($path);
+                    }),
+                Action::make('scholars_summary')
+                    ->action(function () {
+                        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('templates/' . 'scholars profile summary.xlsx'));
+                        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+                        $path = storage_path('app/livewire-tmp/' . date_timestamp_get(now()) . '-scholars-summary.xlsx');
+                        GenerateScholarsSummaryReport::handle($spreadsheet);
                         $writer->save($path);
                         return response()->download($path);
                     })

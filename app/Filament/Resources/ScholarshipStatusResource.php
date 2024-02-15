@@ -2,17 +2,25 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\CampusResource\Pages;
-use App\Models\Campus;
+use App\Filament\Resources\ScholarshipStatusResource\Pages;
+use App\Filament\Resources\ScholarshipStatusResource\RelationManagers;
+use App\Models\ScholarshipStatus;
 use Filament\Forms;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class CampusResource extends Resource
+class ScholarshipStatusResource extends Resource
 {
-    protected static ?string $model = Campus::class;
+    protected static ?string $model = ScholarshipStatus::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -20,9 +28,8 @@ class CampusResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
+                TextInput::make('name'),
+                Toggle::make('is_completed')->inline(false),
             ]);
     }
 
@@ -30,8 +37,8 @@ class CampusResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                TextColumn::make('name'),
+                IconColumn::make('is_completed')->alignCenter()->boolean(),
             ])
             ->filters([
                 //
@@ -50,7 +57,7 @@ class CampusResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ManageCampuses::route('/'),
+            'index' => Pages\ManageScholarshipStatuses::route('/'),
         ];
     }
 }

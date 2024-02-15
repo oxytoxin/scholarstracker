@@ -3,13 +3,13 @@
 use App\Models\Campus;
 use App\Models\DegreeProgram;
 use App\Models\HeiDisconnectionReason;
-use App\Models\ScholarshipType;
-use App\Models\ScholarshipCategory;
-use Illuminate\Support\Facades\Schema;
 use App\Models\HigherEducationInstitute;
+use App\Models\ScholarshipCategory;
 use App\Models\ScholarshipStatus;
-use Illuminate\Database\Schema\Blueprint;
+use App\Models\ScholarshipType;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {

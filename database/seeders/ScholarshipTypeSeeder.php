@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\ScholarshipType;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class ScholarshipTypeSeeder extends Seeder
 {
@@ -14,25 +13,25 @@ class ScholarshipTypeSeeder extends Seeder
     public function run(): void
     {
         ScholarshipType::create([
-            'name' => 'Institutional'
+            'name' => 'Institutional',
         ]);
         ScholarshipType::create([
-            'name' => 'CHED K-12 (Doctoral)'
+            'name' => 'CHED K-12 (Doctoral)',
         ]);
         ScholarshipType::create([
-            'name' => 'CHED K-12 ( Masteral)'
+            'name' => 'CHED K-12 ( Masteral)',
         ]);
         ScholarshipType::create([
-            'name' => 'CHED SIKAP'
+            'name' => 'CHED SIKAP',
         ]);
         ScholarshipType::create([
-            'name' => 'DOST'
+            'name' => 'DOST',
         ]);
         ScholarshipType::create([
-            'name' => 'FOREIGN SCHOLARSHIP'
+            'name' => 'FOREIGN SCHOLARSHIP',
         ]);
         ScholarshipType::create([
-            'name' => 'OTHER SCHOLARSHIP'
+            'name' => 'OTHER SCHOLARSHIP',
         ]);
     }
 }

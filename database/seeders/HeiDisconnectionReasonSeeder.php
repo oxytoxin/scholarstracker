@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\HeiDisconnectionReason;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class HeiDisconnectionReasonSeeder extends Seeder
@@ -14,16 +13,16 @@ class HeiDisconnectionReasonSeeder extends Seeder
     public function run(): void
     {
         HeiDisconnectionReason::create([
-            'name' => 'Resignation'
+            'name' => 'Resignation',
         ]);
         HeiDisconnectionReason::create([
-            'name' => 'Termination'
+            'name' => 'Termination',
         ]);
         HeiDisconnectionReason::create([
-            'name' => 'Health Reasons'
+            'name' => 'Health Reasons',
         ]);
         HeiDisconnectionReason::create([
-            'name' => 'Others'
+            'name' => 'Others',
         ]);
     }
 }

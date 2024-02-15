@@ -26,7 +26,7 @@ class AppPanelProvider extends PanelProvider
             ->default()
             ->id('app')
             ->path('')
-            ->domain(config('app.env') == "local" ? "localhost" : config('app.url'))
+            ->domain(config('app.env') == 'local' ? 'localhost' : config('app.url'))
             ->login()
             ->colors([
                 'primary' => Color::Green,

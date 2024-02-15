@@ -5,7 +5,6 @@ namespace Database\Factories;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Lottery;
-use Storage;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Scholar>
@@ -21,8 +20,9 @@ class ScholarFactory extends Factory
     {
         $scholarship_type_id = $this->faker->numberBetween(1, 7);
         $contract_start_date = CarbonImmutable::create($this->faker->dateTimeBetween('-8 years', '-2 years'));
+
         return [
-            'profile_photo' => $this->faker->image(storage_path("app/public/profile_photos/"), fullPath: false),
+            'profile_photo' => $this->faker->image(storage_path('app/public/profile_photos/'), fullPath: false),
             'first_name' => $this->faker->firstName,
             'last_name' => $this->faker->lastName,
             'middle_initial' => Lottery::odds(8, 10)->winner(fn () => strtoupper($this->faker->randomLetter)),

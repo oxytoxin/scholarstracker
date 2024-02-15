@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\ScholarshipCategory;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
 
 class ScholarshipCategorySeeder extends Seeder
 {
@@ -14,23 +13,23 @@ class ScholarshipCategorySeeder extends Seeder
     public function run(): void
     {
         ScholarshipCategory::create([
-            'name' => 'A'
+            'name' => 'A',
         ]);
 
         ScholarshipCategory::create([
-            'name' => 'D'
+            'name' => 'D',
         ]);
 
         ScholarshipCategory::create([
-            'name' => 'E'
+            'name' => 'E',
         ]);
 
         ScholarshipCategory::create([
-            'name' => 'F'
+            'name' => 'F',
         ]);
 
         ScholarshipCategory::create([
-            'name' => 'Special Provision'
+            'name' => 'Special Provision',
         ]);
     }
 }

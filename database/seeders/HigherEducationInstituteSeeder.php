@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\HigherEducationInstitute;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
 
 class HigherEducationInstituteSeeder extends Seeder
 {
@@ -13,12 +12,13 @@ class HigherEducationInstituteSeeder extends Seeder
      */
     public function run(): void
     {
-        if (($handle = fopen(storage_path('csv/uii.csv'), "r")) !== FALSE) {
-            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+        HigherEducationInstitute::query()->delete();
+        if (($handle = fopen(storage_path('csv/uii.csv'), 'r')) !== false) {
+            while (($data = fgetcsv($handle, 1000, ',')) !== false) {
                 $num = count($data);
                 for ($c = 0; $c < $num; $c++) {
                     HigherEducationInstitute::create([
-                        'name' => $data[$c]
+                        'name' => $data[$c],
                     ]);
                 }
             }
