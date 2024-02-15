@@ -245,7 +245,7 @@ class ScholarResource extends Resource
                             $scholarship_type = ScholarshipType::find($livewire->tableFilters['scholarship_type']['value']);
                             GenerateWorksheetForScholarsProfileReport::handle($table->getRecords()->collect(), $scholarship_type?->name, $worksheetTemplate, $spreadsheet);
                         } else {
-                            $grouped_records = $table->getRecords()->groupBy('scholarship_type.name');
+                            $grouped_records = $table->getRecords()->collect()->groupBy('scholarship_type.name');
                             foreach ($grouped_records as $scholarship_type => $scholars) {
                                 GenerateWorksheetForScholarsProfileReport::handle($scholars, $scholarship_type, $worksheetTemplate, $spreadsheet);
                             }
