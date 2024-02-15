@@ -147,7 +147,6 @@ class ScholarResource extends Resource
                         Textarea::make('plan')
                             ->required(),
                     ])
-                    ->hideLabels()
                     ->columnSpanFull(),
                 TableRepeater::make('updates')
                     ->schema([
@@ -157,7 +156,6 @@ class ScholarResource extends Resource
                         Textarea::make('details')
                             ->required(),
                     ])
-                    ->hideLabels()
                     ->columnSpanFull(),
             ]);
     }
