@@ -8,6 +8,7 @@ use App\Filament\Resources\ScholarResource\Pages;
 use App\Models\Scholar;
 use App\Models\ScholarshipType;
 use Awcodes\TableRepeater\Components\TableRepeater;
+use Awcodes\TableRepeater\Header;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
@@ -141,17 +142,27 @@ class ScholarResource extends Resource
                     ])
                     ->columns(2),
                 TableRepeater::make('reentry_plan')
+                    ->headers([
+                        Header::make('date'),
+                        Header::make('plan'),
+                    ])
                     ->schema([
                         DatePicker::make('date')
+                            ->native(false)
                             ->date(),
                         Textarea::make('plan')
                             ->required(),
                     ])
                     ->columnSpanFull(),
                 TableRepeater::make('updates')
+                    ->headers([
+                        Header::make('date'),
+                        Header::make('details'),
+                    ])
                     ->schema([
                         DatePicker::make('date')
                             ->default(today())
+                            ->native(false)
                             ->date(),
                         Textarea::make('details')
                             ->required(),
@@ -263,7 +274,9 @@ class ScholarResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ManageScholars::route('/'),
+            'index' => Pages\ListScholars::route('/'),
+            'create' => Pages\CreateScholar::route('/create'),
+            'edit' => Pages\EditScholar::route('/{record}'),
         ];
     }
 }
