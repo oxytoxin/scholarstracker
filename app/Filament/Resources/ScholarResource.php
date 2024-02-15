@@ -246,6 +246,7 @@ class ScholarResource extends Resource
                             GenerateWorksheetForScholarsProfileReport::handle($table->getRecords()->collect(), $scholarship_type?->name, $worksheetTemplate, $spreadsheet);
                         } else {
                             $grouped_records = $table->getRecords()->collect()->groupBy('scholarship_type.name');
+                            dd($grouped_records);
                             foreach ($grouped_records as $scholarship_type => $scholars) {
                                 GenerateWorksheetForScholarsProfileReport::handle($scholars, $scholarship_type, $worksheetTemplate, $spreadsheet);
                             }
