@@ -241,8 +241,7 @@ class ScholarResource extends Resource
                         $worksheetTemplate = clone $spreadsheet->getActiveSheet();
                         $spreadsheet->removeSheetByIndex(0);
                         $path = storage_path('app/livewire-tmp/' . date_timestamp_get(now()) . '-scholars-profile.xlsx');
-                        dd(blank($livewire->tableFilters['scholarship_type']['value'] ?? null));
-                        if (blank($livewire->tableFilters['scholarship_type']['value'] ?? null)) {
+                        if (filled($livewire->tableFilters['scholarship_type']['value'] ?? null)) {
                             $scholarship_type = ScholarshipType::find($livewire->tableFilters['scholarship_type']['value']);
                             GenerateWorksheetForScholarsProfileReport::handle($table->getRecords()->collect(), $scholarship_type?->name, $worksheetTemplate, $spreadsheet);
                         } else {
