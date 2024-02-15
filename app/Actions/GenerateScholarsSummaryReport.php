@@ -38,7 +38,6 @@ class GenerateScholarsSummaryReport
         $worksheet->setTitle("Scholars Profile Summary");
         $rowStyle = $worksheet->getStyle('A' . $ongoingRow . ':S' . $ongoingRow);
         $ongoing_scholars = Scholar::whereRelation('scholarship_status', 'is_completed', false)->with('campus', 'scholarship_type', 'scholarship_category', 'degree_program', 'higher_education_institute', 'scholarship_status')->get();
-        dd($ongoing_scholars);
         $completed_scholars = Scholar::whereRelation('scholarship_status', 'is_completed', true)->with('campus', 'scholarship_type', 'scholarship_category', 'degree_program', 'higher_education_institute', 'scholarship_status')->get();
         $completedRow = $ongoingRow + $ongoing_scholars->count() + 2;
         static::insertScholarRows($worksheet, $ongoing_scholars, $rowStyle, $ongoingRow);
