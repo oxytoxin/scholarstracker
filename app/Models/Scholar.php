@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\DTO\ScholarUpdateData;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\LaravelData\DataCollection;
@@ -16,12 +17,17 @@ class Scholar extends Model
 
     protected $casts = [
         'reentry_plan' => 'array',
-        'updates' => DataCollection::class.':'.ScholarUpdateData::class,
+        'updates' => DataCollection::class . ':' . ScholarUpdateData::class,
         'contract_start_date' => 'immutable_date',
         'contract_end_date' => 'immutable_date',
         'date_of_graduation' => 'immutable_date',
         'end_of_service_obligation_date' => 'immutable_date',
     ];
+
+    public function scopeWithDetails(Builder $query)
+    {
+        return $query->with('campus', 'scholarship_type', 'scholarship_category', 'degree_program', 'higher_education_institute', 'scholarship_status');
+    }
 
     public function scholarship_status()
     {

@@ -243,11 +243,11 @@ class ScholarResource extends Resource
                         $path = storage_path('app/livewire-tmp/' . date_timestamp_get(now()) . '-scholars-profile.xlsx');
                         if ($livewire->tableFilters['scholarship_type']['value']) {
                             $scholarship_type = ScholarshipType::find($livewire->tableFilters['scholarship_type']['value']);
-                            GenerateWorksheetForScholarsProfileReport::handle(Scholar::cursor(), $scholarship_type?->name, $worksheetTemplate, $spreadsheet);
+                            GenerateWorksheetForScholarsProfileReport::handle(Scholar::whereBelongsTo($scholarship_type, 'scholarship_type')->withDetails()->cursor(), $scholarship_type?->name, $worksheetTemplate, $spreadsheet);
                         } else {
                             $scholarship_types = ScholarshipType::get();
                             foreach ($scholarship_types as $scholarship_type) {
-                                GenerateWorksheetForScholarsProfileReport::handle($scholarship_type->scholars()->with('campus', 'scholarship_type', 'scholarship_category', 'degree_program', 'higher_education_institute', 'scholarship_status')->cursor(), $scholarship_type->name, $worksheetTemplate, $spreadsheet);
+                                GenerateWorksheetForScholarsProfileReport::handle($scholarship_type->scholars()->withDetails()->cursor(), $scholarship_type->name, $worksheetTemplate, $spreadsheet);
                             }
                         }
                         $writer->save($path);
@@ -255,12 +255,8 @@ class ScholarResource extends Resource
                         return response()->download($path);
                     }),
                 Action::make('scholars_summary')
-                    ->action(function () {
-                        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('templates/' . 'scholars profile summary.xlsx'));
-                        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-                        $path = storage_path('app/livewire-tmp/' . date_timestamp_get(now()) . '-scholars-summary.xlsx');
-                        GenerateScholarsSummaryReport::handle($spreadsheet);
-                        $writer->save($path);
+                    ->action(function ($livewire) {
+                        $path = GenerateScholarsSummaryReport::handle($livewire->tableFilters['scholarship_type']['value']);
                         return response()->download($path);
                     })
             ])
